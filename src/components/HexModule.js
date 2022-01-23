@@ -60,7 +60,7 @@ function checkingModuleStatus(hexData, module) {
             count++;
          }
       }
-      console.log("Module Name:", module.moduleName, " - ", count, "/", module.value.strings.length, " - isReady: ", isReady);
+      console.log(`Module Name: ${module.folderName}-${module.moduleName}`, " - ", count, "/", module.value.strings.length, " - isReady: ", isReady);
       return { moduleName: module.moduleName, count: `${count}"/"${module.value.strings.length}`, isReady };
    } catch (error) {
       return { moduleName: "error", count: "0/0", isReady: false };
@@ -266,7 +266,7 @@ const HexModule = () => {
    return (
       <div className="HexModuleContainer">
          <Card border="primary" style={{}}>
-            <Card.Header>Hex Module</Card.Header>
+            <Card.Header style={{ fontSize: "25px", fontWeight: "700", textAlign: "center" }}>Hex Module</Card.Header>
             <Card.Body>
                <Card>
                   <Card.Body>
@@ -289,7 +289,7 @@ const HexModule = () => {
                         <Card.Body>
                            <Row>
                               <Col sm="2">
-                                 <Form.Label>Status</Form.Label>
+                                 <Form.Label>Folders</Form.Label>
                               </Col>
                               <Col sm="10">
                                  <Form.Control type="text" placeholder={fileMatched} readOnly />
@@ -304,7 +304,9 @@ const HexModule = () => {
                         <Card.Body style={{ textAlign: "left" }}>
                            {availableModules.map((folder, index) => (
                               <div key={index}>
-                                 <Row>Folder: {folder.folderName}</Row>
+                                 <Row style={{ display: "block", margin: "10px" }}>
+                                    Folder: <strong>{folder.folderName}</strong>
+                                 </Row>
                                  {folder.modules.map((mo, index2) => (
                                     <Row key={index2}>
                                        <Col sm="1"></Col>
@@ -321,7 +323,9 @@ const HexModule = () => {
                                        </Col>
                                        <Col sm="8">
                                           <Form.Label>Status:&nbsp;</Form.Label>
-                                          <Form.Label style={mo.status.isReady ? { color: "green" } : { color: "red" }}>
+                                          <Form.Label
+                                             style={mo.status.isReady ? { color: "green", fontWeight: "bold" } : { color: "red", fontWeight: "bold" }}
+                                          >
                                              {mo.status.isReady === true ? "Ready" : "Failed"}
                                           </Form.Label>
                                        </Col>

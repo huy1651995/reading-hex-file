@@ -1,18 +1,9 @@
 import React from "react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import "./HexModule.css";
-import { Card, Button, Row, Col, Container, Form, ProgressBar } from "react-bootstrap";
+import { Card, Button, Row, Col, Form, ProgressBar } from "react-bootstrap";
 import hexToArrayBuffer from "hex-to-array-buffer";
 import modules from "../modules";
-
-// const folders = [
-//    ...new Set(
-//       modules.map((x) => ({
-//          folderKey: x.folderKey,
-//          folderName: x.folderName,
-//       }))
-//    ),
-// ];
 
 const folders = distinctArray(
    modules.map((x) => ({
@@ -46,7 +37,7 @@ function folderMatching(hexData) {
 
 function getAvailableModulesByFolderName(folderName) {
    try {
-      const availableModules = modules.filter((x) => x.folderName == folderName);
+      const availableModules = modules.filter((x) => x.folderName === folderName);
       return availableModules;
    } catch (error) {
       return [];
@@ -100,15 +91,6 @@ function replacingProcess(hexData, module) {
 
 //support function
 
-function str2ab(str) {
-   var buf = new ArrayBuffer(str.length * 2); // 2 bytes for each char
-   var bufView = new Uint16Array(buf);
-   for (var i = 0, strLen = str.length; i < strLen; i++) {
-      bufView[i] = str.charCodeAt(i);
-   }
-   return buf;
-}
-
 function distinctArray(array) {
    try {
       let distinct = [];
@@ -121,7 +103,7 @@ function distinctArray(array) {
                break;
             }
          }
-         if (isExist == false) {
+         if (isExist === false) {
             distinct.push(a);
          }
       }
@@ -154,18 +136,17 @@ const HexModule = () => {
 
    let [selectedModules, setSelectedModules] = useState([]);
 
-   const clearAll = ()=>{
-      setFileMatched("Checking...")
-      setAvailableModules([])
+   const clearAll = () => {
+      setFileMatched("Checking...");
+      setAvailableModules([]);
       //setLoadingPercentage(0)
-      setDownloadDataArray([])
-      setSelectedModules([])
-      hexData=""
-   }
+      setDownloadDataArray([]);
+      setSelectedModules([]);
+      hexData = "";
+   };
 
    const handleFileChange = (e) => {
-     
-      clearAll()
+      clearAll();
       const file = e.target.files[0];
       const reader = new FileReader();
       reader.readAsArrayBuffer(file);
@@ -211,8 +192,8 @@ const HexModule = () => {
       const isChecked = e.currentTarget.checked;
       const id = e.currentTarget.id;
 
-      setLoadingPercentage(0)
-      setDownloadDataArray([])
+      setLoadingPercentage(0);
+      setDownloadDataArray([]);
 
       if (isChecked) {
          setSelectedModules((prev) => [...prev, { id, isChecked }]);
@@ -237,7 +218,6 @@ const HexModule = () => {
 
          const folderName = id.split("-")[0];
          const moduleName = id.split("-")[1];
-         const moduleIndex = id.split("-")[2];
 
          const replacingFolder = availableModules.find((x) => x.folderName === folderName);
 
@@ -263,7 +243,7 @@ const HexModule = () => {
          const folderName = id.split("-")[0];
          const moduleName = id.split("-")[1];
 
-         const newValue = downloadDataArray.find((x) => x.folderName == folderName && x.moduleName === moduleName);
+         const newValue = downloadDataArray.find((x) => x.folderName === folderName && x.moduleName === moduleName);
 
          if (!newValue) return { error: `Can't find correct converted data with id = ${id}` };
 

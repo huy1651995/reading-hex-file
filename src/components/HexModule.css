@@ -1,0 +1,12 @@
+.HexModuleContainer {
+   margin: 10px;
+}
+
+.hex-module-row {
+   background-color: black;
+}
+
+.step-header {
+   text-align: left;
+   background-color: #0dcaf0;
+}

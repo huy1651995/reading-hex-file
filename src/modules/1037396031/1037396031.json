@@ -1,0 +1,5 @@
+maybe this file can be used as the function identifyer.
+so maybe some code in here. 
+which compares the ecu file against the 3 json's making sure
+that the strings in the json's will be a match for the file
+then showing the user which options are avalable

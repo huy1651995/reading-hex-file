@@ -1,0 +1,5 @@
+these jsons are the functions the user can disable on their ecu.
+but only 2 out of 3 functions will work on the example file ive added.
+
+i did this on purpose as the system would need to show the user which modules 
+are successfully detected in their ecu.

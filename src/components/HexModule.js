@@ -76,8 +76,14 @@ function replacingProcess(hexData, module) {
       let count = 0;
 
       module.value.strings.forEach((s, i) => {
-         if (copyHex.includes(s.join("").toLowerCase())) {
-            copyHex = copyHex.replace(s, module.value.RPM[i].join("").toLowerCase());
+
+         const searchString = s.join("").toLowerCase()
+         const replaceString = module.value.RPM[i][0].join("").toLowerCase()
+
+         if (copyHex.includes(searchString)) {
+            copyHex = copyHex.replace(searchString, replaceString);
+            console.log("searchString",searchString)
+            console.log("replaceString",replaceString)
             count++;
          }
       });

@@ -481,7 +481,7 @@ const HexModule = () => {
                                  />
                                  <Row style={overlapStatus ? { display: "block", marginTop: "10px" } : { display: "none", marginTop: "10px" }}>
                                     <Col sm="2">
-                                       <Form.Label>Overlap status: </Form.Label>
+                                       <Form.Label>Overlapping status: </Form.Label>
                                     </Col>
                                     <Col sm="10">
                                        <Form.Control type="text" placeholder={overlapStatus} readOnly />

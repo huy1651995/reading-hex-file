@@ -67,31 +67,103 @@ function checkingModuleStatus(hexData, module) {
    }
 }
 
-function replacingProcess(hexData, module) {
+// function replacingProcess(hexData, module) {
+//    try {
+//       let copyHex = hexData.toLowerCase();
+//       if (!hexData) return "";
+//       if (!(module && module.moduleName && module.value.strings.length > 0 && module.value.RPM.length > 0)) return "";
+
+//       let count = 0;
+
+//       module.value.strings.forEach((s, i) => {
+//          const searchString = s.join("").toLowerCase();
+//          const replaceString = module.value.RPM[i][0].join("").toLowerCase();
+
+//          if (copyHex.includes(searchString)) {
+//             copyHex = copyHex.replace(searchString, replaceString);
+//             console.log("searchString", searchString);
+//             console.log("replaceString", replaceString);
+//             count++;
+//          }
+//       });
+
+//       console.log(`Replace ${module.folderName}-${module.moduleName}: `, count, "/", module.value.strings.length);
+//       return copyHex;
+//    } catch (error) {
+//       return "";
+//    }
+// }
+
+function replacingMultipleModule(hexData, modules) {
    try {
+      let allStrings = [];
+      let allRPMs = [];
       let copyHex = hexData.toLowerCase();
-      if (!hexData) return "";
-      if (!(module && module.moduleName && module.value.strings.length > 0 && module.value.RPM.length > 0)) return "";
+      let totalStringsInModules = 0;
+      let totalRPMInModules = 0;
+      let replaceCount = 0;
 
-      let count = 0;
+      let tracking = [];
 
-      module.value.strings.forEach((s, i) => {
+      for (let m of modules) {
+         let strings = m.value.strings;
+         let RPM = m.value.RPM;
 
-         const searchString = s.join("").toLowerCase()
-         const replaceString = module.value.RPM[i][0].join("").toLowerCase()
+         let trackingRecord = {
+            folderName: m.folderName,
+            moduleName: m.moduleName,
+            start: totalStringsInModules + 1,
+         };
 
-         if (copyHex.includes(searchString)) {
-            copyHex = copyHex.replace(searchString, replaceString);
-            console.log("searchString",searchString)
-            console.log("replaceString",replaceString)
-            count++;
+         for (let s of strings) {
+            allStrings.push(s.join("").toLowerCase());
+            totalStringsInModules++;
          }
-      });
+         for (let r of RPM) {
+            allRPMs.push(r[0].join("").toLowerCase());
+            totalRPMInModules++;
+         }
 
-      console.log(`Replace ${module.folderName}-${module.moduleName}: `, count, "/", module.value.strings.length);
-      return copyHex;
+         trackingRecord.end = totalStringsInModules;
+
+         tracking.push(trackingRecord);
+      }
+
+      if (allStrings.length !== allRPMs.length || allStrings.length !== totalStringsInModules || allRPMs.length !== totalRPMInModules)
+         return { error: "Length check failed!", newHex: "" };
+
+      for (let i = 0; i < allStrings.length; i++) {
+         if (copyHex.includes(allStrings[i])) {
+            copyHex = copyHex.replace(allStrings[i], allRPMs[i]);
+            replaceCount++;
+         } else {
+            const notFoundIndex = i + 1;
+
+            const record = tracking.find((x) => x.start <= notFoundIndex && x.end >= notFoundIndex);
+
+            if (!record) {
+               return {
+                  function: "overlapFound",
+                  error: `Overlap found at string ${i}`,
+                  newHex: "",
+               };
+            }
+
+            return {
+               function: "overlapFound",
+               error: `Overlap found in ${record.folderName}-${record.moduleName} module at string ${i}`,
+               newHex: "",
+            };
+         }
+      }
+
+      if (replaceCount === allStrings.length) {
+         return { error: "", newHex: copyHex };
+      } else {
+         return { error: "Replace count does not match with allString.length!", newHex: "" };
+      }
    } catch (error) {
-      return "";
+      return { function: "replacingMultipleModule", error: error, newHex: "" };
    }
 }
 
@@ -134,6 +206,9 @@ function shallowEqual(object1, object2) {
 
 const HexModule = () => {
    const [fileMatched, setFileMatched] = useState("Checking...");
+   const [overlapStatus, setOverlapStatus] = useState();
+   const [progressBarVariant, setProgressBarVariant] = useState('success');
+
    const [availableModules, setAvailableModules] = useState([]);
 
    const [loadingPercentage, setLoadingPercentage] = useState(0);
@@ -200,44 +275,84 @@ const HexModule = () => {
 
       setLoadingPercentage(0);
       setDownloadDataArray([]);
+      setOverlapStatus();
+      setProgressBarVariant('success')
 
       if (isChecked) {
          setSelectedModules((prev) => [...prev, { id, isChecked }]);
       } else {
-         setSelectedModules((prev) => {
-            let newSelectedModules = [...prev];
-            const index = selectedModules.indexOf((x) => x.id === id);
+
+         let newSelectedModules=selectedModules
+         const index = newSelectedModules.findIndex((x) => x.id === id);
+         if(index>=0)
+         {
             newSelectedModules.splice(index, 1);
-            return newSelectedModules;
-         });
+            setSelectedModules(newSelectedModules)
+         }
+
+
+         // setSelectedModules((prev) => {
+         //    let newSelectedModules = [...prev];
+         //    const index = selectedModules.indexOf((x) => x.id === id);
+         //    newSelectedModules.splice(index, 1);
+         //    return newSelectedModules;
+         // });
       }
    };
 
    const handleConvertOnClick = (e) => {
       setDownloadDataArray([]);
-      let loading = 1;
+      
 
+      let mulReplacingModule = [];
       for (let m of selectedModules) {
          const id = m.id;
-
-         console.log("--- Replacing Process ---");
-
          const folderName = id.split("-")[0];
          const moduleName = id.split("-")[1];
-
          const replacingFolder = availableModules.find((x) => x.folderName === folderName);
-
-         if (!replacingFolder) return null;
-
          const replacingModule = replacingFolder.modules.find((x) => x.moduleName === moduleName);
-
-         const newHex = replacingProcess(hexData, replacingModule);
-
-         loading++;
-         setLoadingPercentage((100 / selectedModules.length) * loading);
-
-         setDownloadDataArray((prev) => [...prev, { folderName: replacingModule.folderName, moduleName: replacingModule.moduleName, newHex }]);
+         if (replacingModule) mulReplacingModule.push(replacingModule);
       }
+
+      const newMultipleHex = replacingMultipleModule(hexData, mulReplacingModule);
+      if (newMultipleHex.error) {
+
+         setProgressBarVariant('danger')
+         setLoadingPercentage(100);
+         setOverlapStatus(newMultipleHex.error);
+
+      } else {         
+         setLoadingPercentage(100);
+         if (selectedModules.length > 1)
+            setDownloadDataArray((prev) => [...prev, { folderName: "combination-result", moduleName: "", newHex: newMultipleHex.newHex }]);
+         else{
+            setDownloadDataArray((prev) => [...prev, { folderName: selectedModules[0].id.split("-")[0], moduleName: selectedModules[0].id.split("-")[1], newHex: newMultipleHex.newHex }]);
+         }
+      }
+
+      // Using for single module with alway result value (ignore overlap)
+      //let loading = 1;
+      // for (let m of selectedModules) {
+      //    const id = m.id;
+
+      //    console.log("--- Replacing Process ---");
+
+      //    const folderName = id.split("-")[0];
+      //    const moduleName = id.split("-")[1];
+
+      //    const replacingFolder = availableModules.find((x) => x.folderName === folderName);
+
+      //    if (!replacingFolder) return null;
+
+      //    const replacingModule = replacingFolder.modules.find((x) => x.moduleName === moduleName);
+
+      //    const newHex = replacingProcess(hexData, replacingModule);
+
+      //    loading++;
+      //    setLoadingPercentage((100 / selectedModules.length) * loading);
+
+      //    setDownloadDataArray((prev) => [...prev, { folderName: replacingModule.folderName, moduleName: replacingModule.moduleName, newHex }]);
+      // }
    };
 
    const handleDownloadButton = (e) => {
@@ -360,10 +475,18 @@ const HexModule = () => {
                               <Col sm="10">
                                  <ProgressBar
                                     animated
-                                    variant="success"
+                                    variant={progressBarVariant}
                                     now={loadingPercentage}
                                     style={selectedModules.length > 0 ? { display: "flex", padding: "0px" } : { display: "none", padding: "0px" }}
                                  />
+                                 <Row style={overlapStatus ? { display: "block", marginTop: "10px" } : { display: "none", marginTop: "10px" }}>
+                                    <Col sm="2">
+                                       <Form.Label>Overlap status: </Form.Label>
+                                    </Col>
+                                    <Col sm="10">
+                                       <Form.Control type="text" placeholder={overlapStatus} readOnly />
+                                    </Col>
+                                 </Row>
                               </Col>
                            </Row>
                         </Card.Body>

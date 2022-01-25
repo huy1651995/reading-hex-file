@@ -324,7 +324,7 @@ const HexModule = () => {
       } else {         
          setLoadingPercentage(100);
          if (selectedModules.length > 1)
-            setDownloadDataArray((prev) => [...prev, { folderName: "combination-result", moduleName: "", newHex: newMultipleHex.newHex }]);
+            setDownloadDataArray((prev) => [...prev, { folderName: "combination", moduleName: "result", newHex: newMultipleHex.newHex }]);
          else{
             setDownloadDataArray((prev) => [...prev, { folderName: selectedModules[0].id.split("-")[0], moduleName: selectedModules[0].id.split("-")[1], newHex: newMultipleHex.newHex }]);
          }
